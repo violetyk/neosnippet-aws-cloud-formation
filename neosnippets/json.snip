@@ -1,0 +1,87 @@
+# Parameters
+snippet parameter/string
+options head
+  "${1:name}" : {
+    "Type": "String",
+    "Default": "${2:default}",
+    "MinLength": "${3:#:1}",
+    "MaxLength": "${4:#:255}",
+    "AllowedValues": [${5:#:"value1", "value2"}],
+    "AllowedPattern": "${6:#:pattern}",
+    "Description" : "${7:#:description}"
+  }${0}
+
+
+
+# Resources
+snippet resource/vpc
+abbr AWS::EC2::VPC
+  "VPC": {
+    "Type": "AWS::EC2::VPC",
+    "Properties": {
+      "CidrBlock" : ${1:#:ref|"10.0.0.0/16"},
+      "EnableDnsSupport": "true",
+      "EnableDnsHostnames": "true",
+      "InstanceTenancy": "${2:#:default|"dedicated}",
+      "Tags": [
+        {
+          "Key": "Application",
+          "Value": { "Ref" : "AWS::StackId" }
+        }
+      ]
+    }
+  }${0}
+
+
+snippet ref
+options word
+  { "Ref" : "${1:name}" }${0}
+
+# 擬似パラメータの参照
+snippet ref/AWS::Region
+abbr リージョン
+options word
+  { "Ref" : "AWS::Region" }${0}
+
+snippet ref/AWS::AccountId
+abbr スタックが作成されているAWSアカウントID
+options word
+  { "Ref" : "AWS::AccountId" }${0}
+
+snippet ref/AWS::NotificationARNs
+abbr 現在のスタックの通知 Amazon リソースネーム（ARN）のリスト
+options word
+  { "Ref" : "AWS::NotificationARNs" }${0}
+
+snippet ref/AWS::NoValue
+abbr Fn::Ifの戻り値として指定すると、対応するリソースプロパティを削除する
+options word
+  { "Ref" : "AWS::NoValue" }${0}
+
+snippet ref/AWS::StackId
+abbr スタックのID
+options word
+  { "Ref" : "AWS::StackId" }${0}
+
+snippet ref/AWS::StackName
+abbr スタックの名前
+options word
+  { "Ref" : "AWS::StackName" }${0}
+
+
+# タグ
+snippet tags
+options head
+  "Tags": [
+    ${1:tags/keyvalue}
+  ]${0}
+
+snippet tags/key-value
+options word
+  {
+    "Key": "${1:Name}",
+    "Value": ${2:value}
+  }${0}
+
+
+
