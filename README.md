@@ -1,0 +1,1 @@
+# neosnippet-aws-cloud-formation
