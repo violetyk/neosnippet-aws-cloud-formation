@@ -34,6 +34,7 @@ It will be updated from time to time.
 
 ### Resources
 - resource/vpc
+- resource/subnet
 
 ### Ref
 - ref
@@ -47,3 +48,14 @@ It will be updated from time to time.
 ### Tags
 - tags
 - tags/key-value
+
+### Regions
+- ap-northeast-1
+- ap-southeast-1
+- ap-southeast-2
+- eu-central-1
+- eu-west-1
+- sa-east-1
+- us-east-1
+- us-west-1
+- us-west-2

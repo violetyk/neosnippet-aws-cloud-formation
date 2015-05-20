@@ -16,13 +16,13 @@ options head
 # Resources
 snippet resource/vpc
 abbr AWS::EC2::VPC
-  "VPC": {
+  "${1:VPC}": {
     "Type": "AWS::EC2::VPC",
     "Properties": {
-      "CidrBlock" : ${1:#:ref|"10.0.0.0/16"},
+      "CidrBlock" : ${2:#:ref|"10.0.0.0/16"},
       "EnableDnsSupport": "true",
       "EnableDnsHostnames": "true",
-      "InstanceTenancy": "${2:#:default|"dedicated}",
+      "InstanceTenancy": "${3:#:default|"dedicated}",
       "Tags": [
         {
           "Key": "Application",
@@ -32,6 +32,23 @@ abbr AWS::EC2::VPC
     }
   }${0}
 
+
+snippet resource/subnet
+abbr AWS::EC2::Subnet
+  "Subnet${1:#:name}" : {
+    "Type" : "AWS::EC2::Subnet",
+    "Properties" : {
+      "VpcId" : { "Ref" : "${2:VPC}" },
+      "CidrBlock" : ${3:#:ref|"10.0.0.0/24"},
+      "AvailabilityZone": "${4:#:ap-northeast-1a}",
+      "Tags": [
+        {
+          "Key": "Application",
+          "Value": { "Ref" : "AWS::StackId" }
+        }
+      ]
+    }
+  }
 
 snippet ref
 options word
@@ -84,4 +101,48 @@ options word
   }${0}
 
 
+# リージョン
+snippet ap-northeast-1
+abbr region/Asia Pacific (Tokyo)
+options word
+  ap-northeast-1
 
+snippet ap-southeast-1
+abbr region/Asia Pacific (Singapore)
+options word
+  ap-southeast-1
+
+snippet ap-southeast-2
+abbr region/Asia Pacific (Sydney)
+options word
+  ap-southeast-2
+
+snippet eu-central-1
+abbr region/EU (Frankfurt)
+options word
+  eu-central-1
+
+snippet eu-west-1
+abbr region/EU (Ireland)
+options word
+  eu-west-1
+
+snippet sa-east-1
+abbr region/South America (Sao Paulo)
+options word
+  sa-east-1
+
+snippet us-east-1
+abbr region/US East (N. Virginia)
+options word
+  us-east-1
+
+snippet us-west-1
+abbr region/US West (N. California)
+options word
+  us-west-1
+
+snippet us-west-2
+abbr region/US West (Oregon)
+options word
+  us-west-2
