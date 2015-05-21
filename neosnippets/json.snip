@@ -1,9 +1,10 @@
 # Parameters
 snippet parameter/string
+abbr リテラル文字列
 options head
   "${1:name}" : {
     "Type": "String",
-    "Default": "${2:default}",
+    "Default": "${2}",
     "MinLength": "${3:#:1}",
     "MaxLength": "${4:#:255}",
     "AllowedValues": [${5:#:"value1", "value2"}],
@@ -11,11 +12,31 @@ options head
     "Description" : "${7:#:description}"
   }${0}
 
+snippet parameter/number
+abbr 整数または浮動小数値
+options head
+  "${1:name}" : {
+    "Type": "Number",
+    "Default": "${2}",
+    "MinValue": "${3}",
+    "MaxValue": "${4}",
+    "Description" : "${5:#:description}"
+  }${0}
+
+snippet parameter/comma-delimited-list
+abbr カンマ区切りで指定する配列
+options head
+  "${1:name}" : {
+    "Type": "CommaDelimitedList",
+    "Default": "${2:value1, value2, value3}",
+    "Description" : "${3:#:0 = value1, 1 = value2...}"
+  }${0}
 
 
 # Resources
-snippet resource/vpc
-abbr AWS::EC2::VPC
+snippet resource/ec2::vpc
+abbr Virtual Private Cloud（VPC）を作成
+options head
   "${1:VPC}": {
     "Type": "AWS::EC2::VPC",
     "Properties": {
@@ -32,14 +53,14 @@ abbr AWS::EC2::VPC
     }
   }${0}
 
-
-snippet resource/subnet
-abbr AWS::EC2::Subnet
+snippet resource/ec2::subnet
+abbr サブネットを作成
+options head
   "Subnet${1:#:name}" : {
-    "Type" : "AWS::EC2::Subnet",
-    "Properties" : {
-      "VpcId" : { "Ref" : "${2:VPC}" },
-      "CidrBlock" : ${3:#:ref|"10.0.0.0/24"},
+    "Type": "AWS::EC2::Subnet",
+    "Properties": {
+      "VpcId": { "Ref" : "${2:VPC}" },
+      "CidrBlock": ${3:#:ref|"10.0.0.0/24"},
       "AvailabilityZone": "${4:#:ap-northeast-1a}",
       "Tags": [
         {
@@ -48,7 +69,173 @@ abbr AWS::EC2::Subnet
         }
       ]
     }
-  }
+  }${0}
+
+snippet resource/ec2::internet-gateway
+abbr インターネットゲートウェイを作成
+options head
+  "InternetGateway${1:#:name}" : {
+    "Type": "AWS::EC2::InternetGateway",
+    "Properties": {
+      "Tags": [
+        {
+          "Key": "Application",
+          "Value": { "Ref" : "AWS::StackId" }
+        }
+      ]
+    }
+  }${0}
+
+snippet resource/ec2::internet-gateway-attach
+abbr VPCにゲートウェイをアタッチ
+options head
+  "InternetGatewayAttach${1:#:name}" : {
+    "Type": "AWS::EC2::VPCGatewayAttachment",
+    "Properties": {
+      "VpcId": { "Ref" : "${2:VPC}" },
+      "InternetGatewayId": { "Ref" : "${3:InternetGateway}" }
+      ${4:#:"VpnGatewayId" : "$\{5\}"}
+    }
+  }${0}
+
+snippet resource/ec2::route-table
+abbr ルートテーブルを作成。ルートを追加したりテーブルをサブネットと関連づけることができる
+options head
+  "RouteTable${1:#:name}" : {
+    "Type": "AWS::EC2::RouteTable",
+    "Properties": {
+      "VpcId": { "Ref" : "${2:VPC}" },
+      "Tags": [
+        {
+          "Key": "Application",
+          "Value": { "Ref" : "AWS::StackId" }
+        }
+      ]
+    }
+  }${0}
+
+snippet resource/ec2::route
+abbr ルートテーブルに新しいルートを作成。VPCにアタッチされているゲートウェイやVPC内NATを指定できる
+options head
+  "Route${1:#:name}" : {
+    "Type": "AWS::EC2::Route",
+    "DependsOn": "InternetGatewayAttach",
+    "Properties": {
+      "RouteTableId": { "Ref" : "${2:RouteTable}" },
+      "DestinationCidrBlock": "${3:0.0.0.0/0}",
+      "GatewayId": { "Ref" : "${4:InternetGateway}" }
+    }
+  }${0}
+
+snippet resource/ec2::subnet-route-table-association
+abbr サブネットをルートテーブルに関連付ける
+options head
+  "SubnetRouteTableAssociation${1:name}" : {
+    "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    "Properties": {
+      "SubnetId": { "Ref" : "${2:Subnet}" },
+      "RouteTableId": { "Ref" : "${3:RouteTable}" }
+    }
+  }${0}
+
+snippet resource/ec2::network-acl
+abbr ネットワークACLを作成
+options head
+  "NetworkAcl${1:#:name}" : {
+    "Type": "AWS::EC2::NetworkAcl",
+    "Properties": {
+      "VpcId": {"Ref" : "${2:VPC}"},
+      "Tags": [ {"Key" : "Application", "Value" : { "Ref" : "AWS::StackId"} } ]
+    }
+  }${0}
+
+snippet resource/ec2::network-acl-entry
+abbr ネットワークACLにルールを作成
+options head
+  "NetworkAclEntry${1:#:name}" : {
+    "Type": "AWS::EC2::NetworkAclEntry",
+    "Properties": {
+      "NetworkAclId": {"Ref" : "${2:NetworkAcl}"},
+      "CidrBlock": "${3:0.0.0.0/0}",
+      "Egress": "${4:#:false(サブネットへの受信トラフィックに適用=false|送信に適用=true)}",
+      "RuleNumber": "${5:100}",
+      "Protocol": "${6:#:6(TCP=6|UDP=17|全て=-1)}",
+      "RuleAction": "${7:#:allow(allow|deny)}",
+      "PortRange": {
+        "From" : "${8:80}",
+        "To" : "${9:80}"
+      }
+    }
+  }${0}
+
+snippet resource/ec2::subnet-network-acl-association
+abbr サブネットをネットワークACLに関連付ける
+options head
+  "SubnetNetworkAclAssociation${1:#:name}" : {
+    "Type": "AWS::EC2::SubnetNetworkAclAssociation",
+    "Properties": {
+      "SubnetId": { "Ref" : "${2:Subnet}" },
+      "NetworkAclId": { "Ref" : "${3:NetworkAcl}" }
+    }
+  }${0}
+
+snippet resource/ec2::security-group
+abbr セキュリティグループを作成する(CiderIp or SourceSecurityGroupIdで指定)
+options head
+  "SecurityGroup${1:#:name}" : {
+    "Type": "AWS::EC2::SecurityGroup",
+    "Properties": {
+      "VpcId": { "Ref" : "${2:VPC}" },
+      "GroupDescription": "${3:#:}",
+      "${4:#:SecurityGroupIngress|SecurityGroupEgress}": [
+        {
+          "IpProtocol" : "tcp",
+          "FromPort" : "22",
+          "ToPort" : "22",
+          "CidrIp" : { "Ref" : "SSHLocation"}
+          ${4:#:"SourceSecurityGroupId" : \{ "Ref" : "$\{5:SecurityGroup\}"\}}
+        },
+        {
+          "IpProtocol" : "tcp",
+          "FromPort" : "80",
+          "ToPort" : "80",
+          "CidrIp" : "0.0.0.0/0"
+        }
+      ]
+    }
+  }${0}
+
+snippet resource/ec2::instance
+abbr EC2インスタンスを作成
+options head
+  "Instance${1:name}": {
+    "Type": "AWS::EC2::Instance",
+    "Properties": {
+      "ImageId": "${2:ami-0f4ea30f}",
+      "InstanceType": { "Ref" : "InstanceType" },
+      "NetworkInterfaces": [
+        {
+          "AssociatePublicIpAddress": true,
+          "DeviceIndex": 0,
+          "GroupSet": [
+            { "Ref" : "SecurityGroup" },
+            { "Ref" : "SecurityGroup" }
+          ],
+          "SubnetId": {
+            "Ref": "Subnet"
+          }
+        }
+      ],
+      "Monitoring": false,
+      "KeyName": { "Ref" : "KeyName" },
+      "UserData": "",
+      "Tags": [
+        "Key": "Name",
+        "Value": "myapp-develop-web"
+      ]
+    }
+  },
+
 
 snippet ref
 options word
@@ -86,9 +273,9 @@ options word
   { "Ref" : "AWS::StackName" }${0}
 
 
-# タグ
+# 属性
 snippet tags
-options head
+options word
   "Tags": [
     ${1:tags/keyvalue}
   ]${0}
@@ -100,6 +287,21 @@ options word
     "Value": ${2:value}
   }${0}
 
+snippet depends-on
+options word
+  "DependsOn": "${1:name}"${0}
+
+
+# 組み込み関数
+snippet fn::select
+abbr indexを指定してリストから値を取得
+options word
+  { "Fn::Select" : [ "${1:index}", ${2:#:ref|["value1", "value2"]} ] }${0}
+
+snippet fn::join
+abbr delimiterで区切ってリストの各要素を連結
+options word
+  { "Fn::Join" : [ "${1:#:delimiter}", ${2:["value1", "value2"]} ] }${0}
 
 # リージョン
 snippet ap-northeast-1

@@ -31,10 +31,22 @@ It will be updated from time to time.
 
 ### Parameters
 - parameter/string
+- parameter/number
+- parameter/comma-delimited-list
 
 ### Resources
-- resource/vpc
-- resource/subnet
+- resource/ec2::vpc
+- resource/ec2::subnet
+- resource/ec2::internet-gateway
+- resource/ec2::internet-gateway-attach
+- resource/ec2::route-table
+- resource/ec2::route
+- resource/ec2::subnet-route-table-association
+- resource/ec2::network-acl
+- resource/ec2::network-acl-entry
+- resource/ec2::subnet-network-acl-association
+- resource/ec2::security-group
+- resource/ec2::instance
 
 ### Ref
 - ref
@@ -45,9 +57,14 @@ It will be updated from time to time.
 - ref/AWS::StackId
 - ref/AWS::StackName
 
-### Tags
+### Attributes
 - tags
 - tags/key-value
+- depends-on
+
+### Functions
+- fn::select
+- fn::join
 
 ### Regions
 - ap-northeast-1
