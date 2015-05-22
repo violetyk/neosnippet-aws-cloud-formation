@@ -218,8 +218,8 @@ options head
           "AssociatePublicIpAddress": true,
           "DeviceIndex": 0,
           "GroupSet": [
-            { "Ref" : "SecurityGroup" },
-            { "Ref" : "SecurityGroup" }
+            { "Ref" : "${3:SecurityGroup}" },
+            { "Ref" : "${4:SecurityGroup}" }
           ],
           "SubnetId": {
             "Ref": "Subnet"
@@ -234,8 +234,62 @@ options head
         "Value": "myapp-develop-web"
       ]
     }
-  },
+  }${0}
 
+snippet resource/rds::db-subnet-group
+abbr DBサブネットグループを作成。AZが違うサブネットが少なくとも2つ必要。
+options head
+  "DBSubnetGroup${1:#:name}": {
+    "Type": "AWS::RDS::DBSubnetGroup",
+    "Properties" : {
+      "DBSubnetGroupDescription" : "${2:description}",
+      "SubnetIds" : [
+        { "Ref": "${3:Subnet}" },
+        { "Ref": "${4:Subnet}" }
+      ]
+    }
+  }${0}
+
+snippet resource/rds::db-instance
+abbr RDSインスタンスを作成
+options head
+  "DBInstance${1:name}": {
+    "Type": "AWS::RDS::DBInstance",
+    "Properties": {
+      "AllocatedStorage" : "${2:#:20(GB単位/IOPSを使う場合は100以上必要)}",
+      "AutoMinorVersionUpgrade" : false,
+      "AvailabilityZone" : "${3:#:ap-northeast-1a(MultiZ=trueの場合には設定できない)}",
+      "BackupRetentionPeriod" : "7",
+      "DBInstanceClass" : "${4:db.t2.micro}",
+      "DBInstanceIdentifier" : "${5:#:mydbinstance(リージョンでユニークにする/変更不可)}",
+      "DBName" : "${6:#:mydb(最初に作るデータベース名/英数字のみ)}",
+      "DBParameterGroupName" : { "Ref" : "${7:DBParameterGroup}" },
+      "DBSubnetGroupName" : { "Ref" : "${8:DBSubnetGroup}" },
+      "Engine" : "${9:MySQL}",
+      "EngineVersion" : "${10:5.6.22}",
+      "MasterUsername" : ${11:#:ref|"awsuser"},
+      "MasterUserPassword" : ${12:#:ref|"awspassword"},
+      "MultiAZ" : ${13:true},
+      "Port" : "3306",
+      "PreferredBackupWindow" : "${14:#:04:00-04:30(BackupRetentionPeriodの設定に応じた、自動バックアップが作成される毎日の時間範囲)}",
+      "PubliclyAccessible" : false,
+      "StorageType" : "${15:#:standard|gp2|iol(iolの場合にはIopsパラメータが必要)}",
+      "VPCSecurityGroups" : [
+        { "Ref" : "${16:SecurityGroup}" }
+      ]
+    }
+  }${0}
+
+snippet resource/rds::db-parameter-group
+abbr RDSカスタムパラメータグループを作成
+  "DBParameterGroup${1:#:name}": {
+    "Type": "AWS::RDS::DBParameterGroup",
+    "Properties" : {
+      "Description": "${2:My Parameter group}",
+      "Family": "${3:Mysql5.6}",
+      ${4:#:"Parameters": \{ "Key1" : "Value1", "Key2" : "Value2" \}}
+    }
+  }${0}
 
 snippet ref
 options word

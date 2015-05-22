@@ -47,6 +47,9 @@ It will be updated from time to time.
 - resource/ec2::subnet-network-acl-association
 - resource/ec2::security-group
 - resource/ec2::instance
+- resource/rds::db-subnet-group
+- resource/rds::db-parameter-group
+- resource/rds::db-instance
 
 ### Ref
 - ref
