@@ -50,15 +50,16 @@ It will be updated from time to time.
 - resource/rds::db-subnet-group
 - resource/rds::db-parameter-group
 - resource/rds::db-instance
+- resource/cloud-formation::init
 
 ### Ref
 - ref
-- ref/AWS::Region
-- ref/AWS::AccountId
-- ref/AWS::NotificationARNs
-- ref/AWS::NoValue
-- ref/AWS::StackId
-- ref/AWS::StackName
+- ref/aws::region
+- ref/aws::account-id
+- ref/aws::notification-arnss
+- ref/aws::no-value
+- ref/aws::stack-id
+- ref/aws::stack-name
 
 ### Attributes
 - tags

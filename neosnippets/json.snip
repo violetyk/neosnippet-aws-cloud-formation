@@ -46,8 +46,8 @@ options head
       "InstanceTenancy": "${3:#:default|"dedicated}",
       "Tags": [
         {
-          "Key": "Application",
-          "Value": { "Ref" : "AWS::StackId" }
+          "Key": "Name",
+          "Value": { "Ref" : "AWS::StackName" }
         }
       ]
     }
@@ -64,8 +64,8 @@ options head
       "AvailabilityZone": "${4:#:ap-northeast-1a}",
       "Tags": [
         {
-          "Key": "Application",
-          "Value": { "Ref" : "AWS::StackId" }
+          "Key": "Name",
+          "Value": { "Ref" : "AWS::StackName" }
         }
       ]
     }
@@ -79,8 +79,8 @@ options head
     "Properties": {
       "Tags": [
         {
-          "Key": "Application",
-          "Value": { "Ref" : "AWS::StackId" }
+          "Key": "Name",
+          "Value": { "Ref" : "AWS::StackName" }
         }
       ]
     }
@@ -107,8 +107,8 @@ options head
       "VpcId": { "Ref" : "${2:VPC}" },
       "Tags": [
         {
-          "Key": "Application",
-          "Value": { "Ref" : "AWS::StackId" }
+          "Key": "Name",
+          "Value": { "Ref" : "AWS::StackName" }
         }
       ]
     }
@@ -145,7 +145,7 @@ options head
     "Type": "AWS::EC2::NetworkAcl",
     "Properties": {
       "VpcId": {"Ref" : "${2:VPC}"},
-      "Tags": [ {"Key" : "Application", "Value" : { "Ref" : "AWS::StackId"} } ]
+      "Tags": [ {"Key" : "Name", "Value" : { "Ref" : "AWS::StackName"} } ]
     }
   }${0}
 
@@ -211,7 +211,7 @@ options head
   "Instance${1:name}": {
     "Type": "AWS::EC2::Instance",
     "Properties": {
-      "ImageId": "${2:ami-0f4ea30f}",
+      "ImageId": "${2:ami-cbf90ecb}",
       "InstanceType": { "Ref" : "InstanceType" },
       "NetworkInterfaces": [
         {
@@ -230,9 +230,13 @@ options head
       "KeyName": { "Ref" : "KeyName" },
       "UserData": "",
       "Tags": [
-        "Key": "Name",
-        "Value": "myapp-develop-web"
-      ]
+        {
+          "Key": "Name",
+          "Value": { "Ref" : "AWS::StackName"}
+        }
+      ],
+      "Metadata": {
+      },
     }
   }${0}
 
@@ -282,6 +286,7 @@ options head
 
 snippet resource/rds::db-parameter-group
 abbr RDSカスタムパラメータグループを作成
+options head
   "DBParameterGroup${1:#:name}": {
     "Type": "AWS::RDS::DBParameterGroup",
     "Properties" : {
@@ -291,37 +296,65 @@ abbr RDSカスタムパラメータグループを作成
     }
   }${0}
 
+snippet resource/cloud-formation::init
+abbr cfn-initヘルパースクリプト用のMetadata
+options head
+  "AWS::CloudFormation::Init": {
+    "configSets": {
+      "set1": [],
+      "set2": [],
+      "default": ["config1"]
+    },
+    "config1": {
+      "packages": {
+      },
+      "groups": {
+      },
+      "users": {
+      },
+      "sources": {
+      },
+      "files": {
+      },
+      "commands": {
+      },
+      "services": {
+      }
+    }
+  }${0}
+
+
 snippet ref
 options word
   { "Ref" : "${1:name}" }${0}
 
 # 擬似パラメータの参照
-snippet ref/AWS::Region
+snippet ref/aws::region
 abbr リージョン
 options word
   { "Ref" : "AWS::Region" }${0}
 
-snippet ref/AWS::AccountId
+snippet ref/aws::account-id
 abbr スタックが作成されているAWSアカウントID
 options word
   { "Ref" : "AWS::AccountId" }${0}
 
-snippet ref/AWS::NotificationARNs
+snippet ref/aws::notification-arns
 abbr 現在のスタックの通知 Amazon リソースネーム（ARN）のリスト
 options word
   { "Ref" : "AWS::NotificationARNs" }${0}
 
-snippet ref/AWS::NoValue
+snippet ref/aws::no-value
 abbr Fn::Ifの戻り値として指定すると、対応するリソースプロパティを削除する
 options word
   { "Ref" : "AWS::NoValue" }${0}
 
-snippet ref/AWS::StackId
+snippet ref/aws::stack-id
 abbr スタックのID
 options word
   { "Ref" : "AWS::StackId" }${0}
 
-snippet ref/AWS::StackName
+snippet ref/aws::stack-name
 abbr スタックの名前
 options word
   { "Ref" : "AWS::StackName" }${0}
@@ -331,7 +364,7 @@ options word
 snippet tags
 options word
   "Tags": [
-    ${1:tags/keyvalue}
+    ${1:tags/key-value}
   ]${0}
 
 snippet tags/key-value
